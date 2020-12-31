@@ -1,12 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 10 16:11:17 2020
+
+@author: fioro
+"""
 # dashboard dos estados
-
-
-import logging
-
-logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s -  %(levelname)s  -  %(message)s')
-logging.disable(logging.DEBUG)
-# you can always disable them later by adding asingle logging.disable(logging.CRITICAL)
-
 
 #####
 ##### chamadas de bibliotecas
@@ -22,69 +20,39 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots  # necessario, pela documentacao para a criacao de graficos com dois eixos
 import dash_bootstrap_components as dbc  # documentaçao em https://dash-bootstrap-components.opensource.faculty.ai/
 
-logging.debug('Fim da importação das libraries')
-
 ######
 ###### capturando os dados
 ######
 
 ##### ESTADOS
-# Define o caminho da planilha na raiz do repositório
 
-# C:\Users\fioro\PycharmProjects\Painel_Rafa\monitora-suporte-federativo
-# enderecoAlterna="dadosTeste.xlsx"
-enderecoAlterna = r'C:\Users\fioro\PycharmProjects\Painel_Rafa\monitora-suporte-federativo\dadosTeste.xlsx'
-
-# Lê as seguintes abas da planilha: Compilado (1), ICMS (4), IPVA(5), Recursos173 (2), Suspensao173(3)
-# OBS.: Inicialmente, não são lidas as abas Capitais (6) e MunicipiosArrecadacao(7)
+enderecoAlterna = "dadosTeste.xlsx"
 compilado = pd.read_excel(enderecoAlterna, sheet_name="Compilado", index_col=0)
-logging.debug('compilado é \n' + str(compilado))
-
 ICMS = pd.read_excel(enderecoAlterna, sheet_name="ICMS", index_col=0)
-logging.debug('ICMS é \n' + str(ICMS))
-
 IPVA = pd.read_excel(enderecoAlterna, sheet_name="IPVA", index_col=0)
-logging.debug('IPVA é \n ' + str(IPVA))
-
 Rec173 = pd.read_excel(enderecoAlterna, sheet_name="Recursos173", index_col=0)
-logging.debug('Rec173 é \n' + str(Rec173))
-
 Sus173 = pd.read_excel(enderecoAlterna, sheet_name="Suspensao173", index_col=0)
-logging.debug('Sus173 é \n' + str(Sus173))
-
-# Criando uma lista com os meses do ano
 nomeMeses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro"]
 beginner = 'TD'  # estado que é plotado na abertura, se alterar aqui, alterar dentro de listaPorEstado
 benchSuficiencia = 1.0  # barra de suficiência que sera benchmark para os indices que serao traçados
 textoArrecada = 'Não perdeu arrecadação.'
-# Esta string aparece como cabeçalho no quadro abaixo do primeiro gráfico
 labelIPVAICMS = 'ICMS + IPVA Perdido'
 bilhao = 10 ** 9
 milhao = 10 ** 6
 
-# Criando variáveis que definirão o que fica com o estado e o que vai para os
-# municíos das receitas arrecadadas de ICMS e IPVA
-# A Constituição federal estabelece que 25% da receita de ICMS de um Estado -
-# usualmente conhecida como cota-parte do ICMS e 50% da receita de IPVA - deve
-# ser transferida aos municípios daquele Estado.
 cotaparteICMS = 0.75
 cotaparteIPVA = 0.5
 # todosNomes é uma lista de lista, cada sublista conterá em 0 o label e em 1 o value
 # para ser usado no dropdown da página
 todosNomes = []
-
-# A função abaixo lê o data frame da aba "Compilado" e alimenta a lista todosNomes
-# com uma coluna "valor" que contém "Nome da UF (UF_nome), Sigla (UF)"
 for i in range(len(compilado.index.values)):
     todosNomes.append([compilado['UF_nome'][i], compilado.index.values[i]])
 
 
-# Função para truncar o número em n casas
 def truncar(numero, ncasas):
     return int(numero * (10 ** ncasas)) / (10 ** ncasas)
 
 
-#
 def retornaListaEstado(EstadoAlvo, nomeMeses, ICMS, compilado, IPVA):
     # Criar uma lista para cada estado com os seguintes dados
     # 0 - Nome dos Meses
@@ -98,30 +66,13 @@ def retornaListaEstado(EstadoAlvo, nomeMeses, ICMS, compilado, IPVA):
     # 8 - True se estiver atualizado, false se estiver desatualizado
     # 9 - Lista com os diferenciais %, mês contra mês
 
-    # MP 938: União prestará apoio financeiro aos estados e aos municípios mediante
-    # o repasse do montante correspondente à variação nominal negativa entre os
-    # valores creditados pelos Fundos de Participação dos Estados e do Distrito Federal
-    # (FPE) e dos Municípios (FPM), de março a junho do exercício de 2020, em relação
-    # ao mesmo período de 2019).
-
-    # LC 173: I - suspensão dos pagamentos das dívidas, II II - reestruturação de
-    # operações de crédito interno e externo junto ao sistema financeiro e instituições
-    # multilaterais de crédito.
-    # III - entrega de recursos da União, na forma de auxílio financeiro, aos Estados,
-    # ao Distrito Federal e aos Municípios, no exercício de 2020.
-
-    # Cria a lista vazia dadosEstado
     dadosEstado = []
-    # Cria uma varável com o número de meses em nomeMeses
     NMeses = len(nomeMeses)
-    # Alimenta a lista dadosEstado com a lista de meses
+
     dadosEstado.append(nomeMeses)
 
-    # Cria uma lista com os números de 0 até o número de meses de nomeMeses
     selecao2019 = list(range(0, NMeses))
-    # Cria uma lista com os números de número de meses de nomeMeses até o dobro deste número
     selecao2020 = list(range(NMeses, NMeses * 2))
-    # Cria uma lista de 1 a 4.
     selecaoAjudas = list(range(1, 4))
 
     # testando se esta atualizado ou não
@@ -175,11 +126,8 @@ def retornaListaEstado(EstadoAlvo, nomeMeses, ICMS, compilado, IPVA):
     dadosEstado.append([100 * (i20 / i19 - 1) for i19, i20 in
                         zip(dadosEstado[1], dadosEstado[2])])  # adicionando os valores de ICMS + IPVA de 2019
 
-    logging.debug('dadosEstado é \n ' + str(dadosEstado))
     return dadosEstado
 
-
-# FIM da função retornaListaEstado
 
 def retornaSuficiencia(EstadoAlvo, nomeMeses, ICMS, compilado, IPVA):
     # esse indice é o total do suporte recebido sobre o delta da arrecadacao acumulada
@@ -189,7 +137,6 @@ def retornaSuficiencia(EstadoAlvo, nomeMeses, ICMS, compilado, IPVA):
     else:
         testeSuficiencia = -1 * (dadosEstado[7][1] + dadosEstado[7][2]) / dadosEstado[5][-1]
 
-    logging.debug('testeSuficiencia é \n ' + str(testeSuficiencia))
     return testeSuficiencia
 
 
@@ -244,8 +191,6 @@ def retonarDf(EstadoAlvo, nomeMeses, ICMS, compilado):
                           labelIPVAICMS: [numToMString(-1 * dadosEstado[5][-1])]}, index=[EstadoAlvo])
     listadeDF.append(dataF)
 
-    logging.debug('listadeDF é \n' + str(listadeDF))
-
     return listadeDF
 
 
@@ -262,7 +207,6 @@ def listaPorEstado(nomeMeses, ICMS, compilado, todosNomes):
             eixoX.append(item[0])
             eixoySuporte.append(dadosEstado[7][1] + dadosEstado[7][2])
             eixoyArrecad.append(-1 * dadosEstado[5][-1])
-    # logging.debug('fç 5 - listaPorEstado - eixoX,eixoySuporte,eixoyArrecad é \n' + str(eixoX) + str(eixoySuporte)+ str(eixoyArrecad))
     return [eixoX, eixoySuporte, eixoyArrecad]
 
 
@@ -283,7 +227,6 @@ def numToMString(numero):
     numString = numString.replace('&', ',')
     cifra = 'R$ '
     milhoes = ' milhões'
-    logging.debug('cifra+numString+milhoes é \n' + str(cifra + numString + milhoes))
     return (cifra + numString + milhoes)
 
 
@@ -296,7 +239,6 @@ def ICMSatualizado(nomeMeses, ICMS, compilado):
             if retornaListaEstado(item[1], nomeMeses, ICMS, compilado, IPVA)[8] == False:
                 teste = False
                 contador += 1
-    logging.debug('fç ICMSatualizado é \n' + str(teste) + str(contador))
     return [teste, contador]
 
 
@@ -328,7 +270,6 @@ def dadosMesMes(EstadoAlvo, nomeMeses, ICMS, compilado, IPVA, Rec173, Sus173):
 
     mm.append([Rec173mm, Sus173mm])
 
-    logging.debug('dadosMesMes- mm \n' + str(mm))
     return mm
 
 
@@ -338,8 +279,6 @@ def retornaLinha(CidadeAlvo, listaAlvo, indiceLista):
     for linha in listaAlvo:
         if linha[indiceLista] == CidadeAlvo:
             linhaRetorno = linha
-
-    logging.debug('fç retornalinha - linharetorno é \n' + str(linhaRetorno))
     return linhaRetorno
 
 
@@ -347,22 +286,14 @@ def retornaLinha(CidadeAlvo, listaAlvo, indiceLista):
 
 mesesCidades = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto']
 
-# Aqui são carregadas as abas restantes da planilha "MunicipiosArrecadacao" (7) e "Capitais"(6)
-# Aba "MunicipiosArrecadacao" contém 3 linhas, com a soma para os municípios pequenos, médios
-# e grandes e 2 colunas mes a mes (RC+ICMS_IPVA) e (Transf Correntes).
 arrecadMun = pd.read_excel(enderecoAlterna, sheet_name="MunicipiosArrecadacao", index_col=0).values.tolist()
-
-logging.debug('DF excel arrecdMun \n' + str(arrecadMun))
 iniCapitais = pd.read_excel(enderecoAlterna, sheet_name="Capitais").values.tolist()
-
-logging.debug('iniCapitais \n' + str(iniCapitais))
 
 # a próxima lista vai ter a seguinte estrutura
 # em 0 e 1, código e nome da cidade, respectivamente
 # em 2 o auxílio da 173
 # de 3 em diante, nMeses pares de Receita Corrente e FPM
 dadosCapitais = []
-#############DÙVIDA: POR QUE NÂO ESTÁ SENDO USADO? ##########
 # for cidade in iniCapitais:
 #  listaTemp=[str(cidade[0]),cidade[1],cidade[2]]
 #  for dArrecad in arrecadMun[:-3]: #tirei do loop as duas últimas linhas, que sao compilacoes de cidades medias e grandes
@@ -376,13 +307,9 @@ dadosCapitais = []
 # for cidade in dadosCapitais:
 #   listaSoma=([sum(x) for x in zip(listaSoma, cidade[2:])]) #somando linha a linha da lista
 # dadosCapitais.append(['Capitais','Capitais']+listaSoma)
-######################################################################
-
 
 # adicionando as duas ultimas linhas de arrecadMun, cidades grandes e medias
 
-# Abaixo, são criadas 3 variáveis, uma para cada tipo de cidade, somente com as colunas
-# dos dados da aba "MunicipiosArrecadacao"
 cidadesGd = arrecadMun[-3][1:]  # tirei o primeiro elemento, pois esse é so uma label
 cidGdLab = 'Cidades com mais de 1 milhão de habitantes.'
 
@@ -396,14 +323,9 @@ aux173Md = 0  # futuramente, se quiser inserir o auxílio para os municípios de
 aux173Pd = 0
 aux173Gd = 0
 
-# Reorganiza os dados da aba "MunicipiosArrecadacao" colocando o rótulo do tamanho
-# do município nas duas primeiras colunas, seguido do valor fixo do aux173
-# (linhas de código imediatamente acima e dos  demais dados já existentes
 dadosCapitais.append([cidGdLab, cidGdLab, aux173Gd] + cidadesGd)
 dadosCapitais.append([cidMdLab, cidMdLab, aux173Md] + cidadesMd)
 dadosCapitais.append([cidPdLab, cidPdLab, aux173Pd] + cidadesPd)
-
-logging.debug('dadosCapitais é \n' + str(dadosCapitais))
 
 fluxoCapitais = []
 # a partir de dados capitais vou construir outra lista com os fluxos mes a mes
@@ -420,59 +342,27 @@ difCapitais = []
 # em 3, lista com os diferenciais acumulados (RCL - FPM)
 listaMesMes = []
 listaAcumulado = []
-# apesar do nome, "dadosCapitais" é a aba agregada de municípios por tamanho.
 for cidade in dadosCapitais:
-    # cria duas variáveis iguais que contém o rótulo do tamanho de cidade
     listaTemp = cidade[0:2]
-
-    logging.debug('listaTemp inicial é \n' + str(listaTemp))
     listaTempdif = cidade[0:2]
-    # cria duas colunas vazias
-
-    logging.debug('listaTempdiff inicial \n' + str(listaTempdif))
     listaTempdif.append([])
     listaTempdif.append([])
     ac2019 = 0
     ac2020 = 0
     for k in range(0, len(mesesCidades)):
-        if k < 5:  # quando não se tinha ainda auxílio da 173 (?Jan a Junho)
-            # Perguntar ao Francisco
-            # Para o mês de Jan (k = 0) , a linha abaixo gera dois valores, separados
-            # por vírgula, faz [JaneiroRC+ICMS+IPVA2019 - JaneiroTransfCorrente2019] , [JaneiroRC+ICMS+IPVA2020-JaneiroTransfCorrente2020]
+        if k < 5:  # quando não se tinha ainda auxílio da 173
             listaTemp = listaTemp + [cidade[2 * k + 3] - cidade[2 * k + 3 + 1]] + [
                 cidade[2 * k + 3 + 2 * len(mesesCidades)] - cidade[2 * k + 3 + 1 + 2 * len(mesesCidades)]] + [0]
-
-            logging.debug('listaTemp dentro do if é \n' + str(listaTemp))
         else:  # a partir de junho, quando iniciou o auxílio
             # quando entrar os novos auxílios, vou ter que melhorar essa regra do cidade[2]
             listaTemp = listaTemp + [cidade[2 * k + 3] - cidade[2 * k + 3 + 1]] + [
                 cidade[2 * k + 3 + 2 * len(mesesCidades)] - cidade[2 * k + 3 + 1 + 2 * len(mesesCidades)]] + [cidade[2]]
-
-            logging.debug('else listaTemp \n' + str(listaTemp))
-        # Abaixo, vai pegando a diferença que deu naquele mês em 2019
-        # => [JaneiroRC+ICMS+IPVA2019 - JaneiroTransfCorrente2019]  e acumulando paraver em quanto está no ano
         ac2019 = ac2019 + listaTemp[3 * k + 2]
-
-        logging.debug('ac2019 é \n' + str(ac2019))
-        # Analogamente, para o ano de 2020
         ac2020 = ac2020 + listaTemp[3 * k + 3]
-
-        logging.debug('ac2020 é \n' + str(ac2020))
-        # substiui os elementos das diferenças mês a mês da lista por percentuais
         listaTempdif[2].append(listaTemp[3 * k + 3] / listaTemp[3 * k + 2] - 1)
-        # Inlui um elemento com o percentual comparativo do acumulado 2020/2019
         listaTempdif[3].append(ac2020 / ac2019 - 1)
-        # O resultado é a lista para consrtuir a barra azul (Mês contra Mês) do gráfico
-        # "Dados de Receita das Grandes Cidades -> 2020 vs. 2019 (4)",>será a nova lista "difCapitais" usada na parte 2
-
-        logging.debug('list temp dif final é \n' + str(listaTempdif))
-    # A variável "fluxoCapitais" abaixo não foi usdaa na parte 2
     fluxoCapitais.append(listaTemp)
-
-    logging.debug('fluxo de capitais é \n' + str(fluxoCapitais))
     difCapitais.append(listaTempdif)
-
-    logging.debug('difCapitais é \n' + str(difCapitais))
 
 ####
 ####
