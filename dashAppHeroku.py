@@ -4,7 +4,7 @@
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s -  %(levelname)s  -  %(message)s')
-# logging.disable(logging.DEBUG)
+logging.disable(logging.DEBUG)
 # you can always disable them later by adding asingle logging.disable(logging.CRITICAL)
 
 
