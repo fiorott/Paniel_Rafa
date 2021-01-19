@@ -284,7 +284,7 @@ def retornaLinha(CidadeAlvo, listaAlvo, indiceLista):
 
 #### dados de cidades
 
-mesesCidades = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto']
+mesesCidades = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto','Setembro','Outubro']
 
 arrecadMun = pd.read_excel(enderecoAlterna, sheet_name="MunicipiosArrecadacao", index_col=0).values.tolist()
 iniCapitais = pd.read_excel(enderecoAlterna, sheet_name="Capitais").values.tolist()
