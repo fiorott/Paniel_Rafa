@@ -414,7 +414,7 @@ app.layout = html.Div([
         dbc.Col(dbc.Jumbotron([
             html.H1("Secretaria Especial de Fazenda", className="display-3"),
             html.P(
-                "Monitoramento dos recursos de suporte aos Entes Federativos em meio à pandemia do COVID-19",
+                "Monitoramento dos recursos de suporte aos Entes Federativos no combate à pandemia da Covid-19",
                 className="lead",
             ),
         ]), width={"size": 12, "offset": 0}),
